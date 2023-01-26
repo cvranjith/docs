@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Encryption and Decryption Utility</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body class="theme-default aui-theme-default">
+        <div id="page">
+            <div id="main" class="aui-page-panel">
+                <div id="main-header">
+                    <div id="breadcrumb-section">
+                        <ol id="breadcrumbs">
+                            <li class="first">
+                                <span><a href="index.html"></a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="2057266878.html">How To&#39;s</a></span>
+                            </li>
+                                                </ol>
+                    </div>
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                             Encryption and Decryption Utility
+                        </span>
+                    </h1>
+                </div>
+
+                <div id="content" class="view">
+                    <div class="page-metadata">
+                        
+        
+    
+        
+    
+        
+        
+            Created by <span class='author'> Ramanjaneyulu Gangineni</span>, last modified by <span class='editor'> Ranjith Vijayan</span> on Oct 27, 2022
+                        </div>
+                    <div id="main-content" class="wiki-content group">
+                    <p>This utility can be used to encrypt and decrypt secrets used in fcubs.properties. Also</p><h2 id="EncryptionandDecryptionUtility-UsingJava">Using Java</h2><ul><li>Get the source code from <a class="external-link" href="https://alm.oraclecorp.com/fs-bc-japac/#projects/soldel-solarch/scm/encrutil.git/tree/?revision=main" rel="nofollow">https://alm.oraclecorp.com/fs-bc-japac/#projects/soldel-solarch/scm/encrutil.git/tree/?revision=main</a></li><li>Compile the class:<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">javac -cp ./commons-codec-1.15.jar com/oracle/fsgbu/utils/encr/EncrUtil.java
+jar -cvf EncrUtil.jar com</pre>
+</div></div></li><li>Usage:<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">java -classpath commons-codec-1.15.jar:EncrUtil.jar com.oracle.fsgbu.utils.encr.EncrUtil &quot;encr&quot; &quot;MySuperSecret001&quot; &quot;oraclefinancials&quot;
+java -classpath commons-codec-1.15.jar:EncrUtil.jar com.oracle.fsgbu.utils.encr.EncrUtil &quot;decr&quot; &quot;80/mFvJXQkoqiAmXAJz2w//eHJX6MatTUA==&quot; &quot;oraclefinancials&quot;</pre>
+</div></div></li></ul><p><br/></p><p>Old version : <a href="attachments/3583900580/3583900561.zip" data-linked-resource-id="3583900561" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="ApplicationEncryptDecry.zip" data-nice-type="Zip Archive" data-linked-resource-content-type="application/zip" data-linked-resource-container-id="3583900580" data-linked-resource-container-version="7">ApplicationEncryptDecry.zip</a> </p><p>Download the ApplicationEncryptDecry.zip and follow  readme document inside zip file </p><p><br/></p><h2 id="EncryptionandDecryptionUtility-UsingDockerImage(encrutil)">Using Docker Image (encrutil)</h2><p>A docker image <strong>fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:5000/fsgbu/utils/encrutil:2.0</strong> is created with the above java program so that you don't need jdk / other dependencies</p><p><br/></p><p>Usage:</p><p>pass the env parameter <strong>STRING</strong>=value to encrypt</p><p>pass the env parameter <strong>ENCR_DECR</strong>=<strong>decry</strong> for decrypting (default value is &quot;encr&quot; - so for encryption you don't need to pass this env)</p><p><br/></p><p>E.g.</p><h3 id="EncryptionandDecryptionUtility-Encrypt">Encrypt</h3><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: bash; gutter: false; theme: DJango" data-theme="DJango">docker run --rm -e STRING=Oracle123 fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:5000/fsgbu/utils/encrutil:2.0</pre>
+</div></div><p class="auto-cursor-target">Sample Output:</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">docker run --rm -e STRING=Oracle123 fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:5000/fsgbu/utils/encrutil:2.0
+80/mFvJXQkoqiAmXAJz2w//eHJX6MatTUA==</pre>
+</div></div><p><br/></p><p><br/></p><h3 id="EncryptionandDecryptionUtility-Decrypt">Decrypt</h3><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: bash; gutter: false; theme: DJango" data-theme="DJango">docker run --rm -e ENCR_DECR=decry -e STRING=&quot;80/mFvJXQkoqiAmXAJz2w//eHJX6MatTUA==&quot; fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:5000/fsgbu/utils/encrutil:2.0</pre>
+</div></div><p class="auto-cursor-target">Sample Output:</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">docker run --rm -e ENCR_DECR=decr -e STRING=&quot;80/mFvJXQkoqiAmXAJz2w//eHJX6MatTUA==&quot; fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:5000/fsgbu/utils/encrutil:2.0
+Oracle123</pre>
+</div></div><p><br/></p><h3 id="EncryptionandDecryptionUtility-BashFunction">Bash Function</h3><p>Use it inside bash function for short-hand</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">function encr_str() { docker run --rm -e STRING=$1 fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:6000/fsgbu/utils/encrutil:1.0}</pre>
+</div></div><p class="auto-cursor-target">Sample output</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">echo $(encr_str &quot;Oracle123&quot;)
+80/mFvJXQkoqiAmXAJz2w//eHJX6MatTUA==</pre>
+</div></div><p><br/></p><p><br/></p><p>Encrutil can also be used to create JKS file for SAML.</p><p>Import SAML</p><p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">docker run --rm \
+-v /scratch/share/cvr/encr/saml:/saml \
+-e KEY_GEN=Y \
+-e KEYSIZE=2048 \
+-e KEYALG=RSA \
+-e ALIAS=simplesaml \
+-e CERTALIAS=externalsaml \
+-e KEYSTORE=/saml/simplesaml.jks \
+-e STOREPASS=Oracle123 \
+-e KEYPASS=Oracle123 \
+-e CERTFILE=/saml/saml.cer \
+fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:6000/fsgbu/utils/encrutil:2.0
+
+</pre>
+</div></div><p><br/></p><h3 id="EncryptionandDecryptionUtility-Internalreference">Internal reference</h3><p>Dockerfile</p><div class="code panel pdl" style="border-width: 1px;">
+ <div class="codeHeader panelHeader pdl hide-border-bottom">
+  <b class="code-title"></b><span class="collapse-source expand-control" style="display:none;"><span class="expand-control-icon icon">&nbsp;</span><span class="expand-control-text">Expand source</span></span><span class="collapse-spinner-wrapper"></span>
+ </div>
+ <div class="codeContent panelContent pdl hide-toolbar"> 
+  <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence; collapse: true" data-theme="Confluence">FROM container-registry.oracle.com/java/serverjre:1.8.0_341-oraclelinux8
+COPY EncrUtil.jar /EncrUtil.jar
+COPY commons-codec-1.15.jar /commons-codec-1.15.jar
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["sh","-c", "/entrypoint.sh"]</pre> 
+ </div>
+</div><p>entrypoint.sh</p><div class="code panel pdl" style="border-width: 1px;">
+ <div class="codeHeader panelHeader pdl hide-border-bottom">
+  <b class="code-title"></b><span class="collapse-source expand-control" style="display:none;"><span class="expand-control-icon icon">&nbsp;</span><span class="expand-control-text">Expand source</span></span><span class="collapse-spinner-wrapper"></span>
+ </div>
+ <div class="codeContent panelContent pdl hide-toolbar"> 
+  <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence; collapse: true" data-theme="Confluence">!/bin/bash
+if [[ ${KEY_GEN} == "Y" ]]
+then
+   echo "keygen"
+   keytool -genkey -noprompt \
+       -keysize ${KEYSIZE:-"1024"} \
+       -keyalg ${KEYALG:-"RSA"} \
+       -alias ${ALIAS} \
+       -keystore ${KEYSTORE} \
+       -storepass ${STOREPASS} \
+       -keypass ${KEYPASS} \
+       -dname ${DNAME:-"CN=fsgbu.oracle.com, OU=FSGBU, O=Banking, L=Singapore, ST=Singapore, C=SG"}
+
+   echo Generated Key
+   keytool -import -noprompt \
+       -alias ${CERTALIAS} \
+       -file ${CERTFILE} \
+       -keystore ${KEYSTORE} \
+       -storepass ${STOREPASS} \
+       -keypass ${KEYPASS}
+
+   echo Imported Cert
+   ls -alrt ${KEYSTORE}
+
+elif [[ ! -z "${STRING}" ]]
+then
+   java -classpath commons-codec-1.15.jar:EncrUtil.jar com.oracle.fsgbu.utils.encr.EncrUtil ${ENCR_DECR:-"encr"} ${STRING} ${SYMMETRIC_KEY:-"oraclefinancials"}
+fi</pre> 
+ </div>
+</div><p>build:</p><div class="code panel pdl" style="border-width: 1px;">
+ <div class="codeHeader panelHeader pdl hide-border-bottom">
+  <b class="code-title"></b><span class="collapse-source expand-control" style="display:none;"><span class="expand-control-icon icon">&nbsp;</span><span class="expand-control-text">Expand source</span></span><span class="collapse-spinner-wrapper"></span>
+ </div>
+ <div class="codeContent panelContent pdl hide-toolbar"> 
+  <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence; collapse: true" data-theme="Confluence">docker build -t fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:6000/fsgbu/utils/encrutil:2.0 .</pre> 
+ </div>
+</div>
+                    </div>
+
+                                                            <div class="pageSection group">
+                        <div class="pageSectionHeader">
+                            <h2 id="attachments" class="pageSectionTitle">Attachments:</h2>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/3583900580/3583900561.zip">ApplicationEncryptDecry.zip</a> (application/zip)
+                                <br/>
+                                                    </div>
+                    </div>
+                    
+                                                      
+                </div>             </div> 
+            <div id="footer" role="contentinfo">
+                <section class="footer-body">
+                    <p>Document generated by Confluence on Jan 26, 2023 11:18</p>
+                    <div id="footer-logo"><a href="http://www.atlassian.com/">Atlassian</a></div>
+                </section>
+            </div>
+        </div>     </body>
+</html>

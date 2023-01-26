@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Message forwarding from Websphere  to Weblogic</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body class="theme-default aui-theme-default">
+        <div id="page">
+            <div id="main" class="aui-page-panel">
+                <div id="main-header">
+                    <div id="breadcrumb-section">
+                        <ol id="breadcrumbs">
+                            <li class="first">
+                                <span><a href="index.html"></a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="2057266878.html">How To&#39;s</a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="Message-Bridge---Weblogic-JMS-Websphere-MQ_2113040194.html">Message Bridge - Weblogic JMS Websphere MQ</a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="Testing-the-setup_2113040270.html">Testing the setup</a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="Testing_2113040272.html">Testing</a></span>
+                            </li>
+                                                </ol>
+                    </div>
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                             Message forwarding from Websphere  to Weblogic
+                        </span>
+                    </h1>
+                </div>
+
+                <div id="content" class="view">
+                    <div class="page-metadata">
+                        
+        
+    
+        
+    
+        
+        
+            Created by <span class='author'> Ranjith Vijayan</span> on Jul 17, 2020
+                        </div>
+                    <div id="main-content" class="wiki-content group">
+                    
+<p><br class="atl-forced-newline"/>
+This section will show quickly the maintenance of message from Websphere to Weblogic.<br/>
+Basically, the scenario is that once message is put into Websphere local queue, it would be forward to Weblogic queue and process at this side (saying MBD at WL side will pick up message and pass to database for processing then send back to some other destination queue for example.)
+<br class="atl-forced-newline"/></p>
+<h1 id="MessageforwardingfromWebspheretoWeblogic-AdditionalmaintenanceinWebsphere">Additional maintenance in Websphere</h1>
+<p><br class="atl-forced-newline"/>
+<br class="atl-forced-newline"/></p>
+<ul class="alternate">
+	<li>One local queue  TestQWS (same setting as local queue TestQ in earlier section)<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="339" width="604" src="attachments/2113040280/2113040279.png" data-image-src="attachments/2113040280/2113040279.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040279" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddav28d22ecb96c6ec61c41518e07e7c0fd0.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span></li>
+	<li>One queue connection factory MQCFWS (same setting as MQCF in earlier section)<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="337" width="603" src="attachments/2113040280/2113040281.png" data-image-src="attachments/2113040280/2113040281.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040281" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddave0d97c58f9d7f49f47b48574b222a80c.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span></li>
+	<li>One destination TestQWS (same setting as destination TestQ in earlier section)<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="339" width="604" src="attachments/2113040280/2113040282.png" data-image-src="attachments/2113040280/2113040282.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040282" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddavfcdf8278ded14db758c099e241868313.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span>
+<br class="atl-forced-newline"/>
+Here is the binding file of both above maintenances (before used, please rename it to .bindings). It includes the maintenance from WL to WS and vice versa.<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="67" width="104" src="attachments/2113040280/2113040283.png" data-image-src="attachments/2113040280/2113040283.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040283" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddav04fc6b5c9a0b733d42ba18b3eeec0521.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span>
+<br class="atl-forced-newline"/>
+<h1 id="MessageforwardingfromWebspheretoWeblogic-AdditionalmaintenanceinWeblogic">Additional maintenance in Weblogic</h1>
+<br class="atl-forced-newline"/>
+<br class="atl-forced-newline"/></li>
+	<li>Local queue MYDISTQUEUEWS with JNDI as <strong>MYDISTQUEUEWS</strong> and queue connection factory MYJMSCFWS with JNDI as <strong>jms/MYJMSCFWS</strong> as shown in below screenshot<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="231" width="603" src="attachments/2113040280/2113040284.png" data-image-src="attachments/2113040280/2113040284.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040284" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddav1a1b8d16ed0d19b46122ffd697756076.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span> </li>
+	<li>One bridge source SourceWS and destination DestinationWS:<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="209" width="604" src="attachments/2113040280/2113040285.png" data-image-src="attachments/2113040280/2113040285.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040285" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddavddadc7e83a7b029a4d2dde00cf475406.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span><br/>
+The configuration of bridge source is as follows: Source here means where message would flow out.<br/>
+As it is located as Websphere hence <br/>
+Initial Context Factory:    com.sun.jndi.fscontext.RefFSContextFactory<br/>
+Connection URL:    file:/C:/JNDI-Directory/<br/>
+Connection Factory JNDI Name:  MQCFWS (queue connection factory created in WS)<br/>
+Destination JNDI Name:   TestQWS (queue created in WS)<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="299" width="604" src="attachments/2113040280/2113040286.png" data-image-src="attachments/2113040280/2113040286.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040286" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddavc569c0fa16986f91dd09c77310547e58.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span>
+ <br class="atl-forced-newline"/>
+<br class="atl-forced-newline"/>
+<br class="atl-forced-newline"/>
+<br class="atl-forced-newline"/>
+The configuration of bridge destination is as follows: Source here means where message would reach<br/>
+Initial Context Factory:    weblogic.jndi.WLInitialContextFactory<br/>
+Connection URL:    t3://localhost:7001<br/>
+Connection Factory JNDI Name:  jms/MYJMSCFWS (queue connection factory created in WL)<br/>
+Destination JNDI Name:   MYDISTQUEUEWS (queue created in WL)<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="267" width="604" src="attachments/2113040280/2113040287.png" data-image-src="attachments/2113040280/2113040287.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040287" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddav1a160a18cc6c93b52f2a7cf600fc4c6f.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span><br/>
+Now we would create bridge <strong>MQ2local</strong> to link both mentioned source and destination<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="242" width="530" src="attachments/2113040280/2113040288.png" data-image-src="attachments/2113040280/2113040288.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040288" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddavfb7719e776dbe58eab59f77c4c7578c9.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span><br/>
+And target to AdminServer<br/>
+<span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="130" width="604" src="attachments/2113040280/2113040289.png" data-image-src="attachments/2113040280/2113040289.png" data-unresolved-comment-count="0" data-linked-resource-id="2113040289" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="worddav0def1e651f88367bfb2f17fff19d0956.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="2113040280" data-linked-resource-container-version="1"></span></li>
+</ul>
+                    </div>
+
+                                                            <div class="pageSection group">
+                        <div class="pageSectionHeader">
+                            <h2 id="attachments" class="pageSectionTitle">Attachments:</h2>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040279.png">worddav28d22ecb96c6ec61c41518e07e7c0fd0.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040281.png">worddave0d97c58f9d7f49f47b48574b222a80c.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040282.png">worddavfcdf8278ded14db758c099e241868313.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040283.png">worddav04fc6b5c9a0b733d42ba18b3eeec0521.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040284.png">worddav1a1b8d16ed0d19b46122ffd697756076.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040285.png">worddavddadc7e83a7b029a4d2dde00cf475406.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040286.png">worddavc569c0fa16986f91dd09c77310547e58.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040287.png">worddav1a160a18cc6c93b52f2a7cf600fc4c6f.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040288.png">worddavfb7719e776dbe58eab59f77c4c7578c9.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/2113040280/2113040289.png">worddav0def1e651f88367bfb2f17fff19d0956.png</a> (image/png)
+                                <br/>
+                                                    </div>
+                    </div>
+                    
+                                                      
+                </div>             </div> 
+            <div id="footer" role="contentinfo">
+                <section class="footer-body">
+                    <p>Document generated by Confluence on Jan 26, 2023 11:18</p>
+                    <div id="footer-logo"><a href="http://www.atlassian.com/">Atlassian</a></div>
+                </section>
+            </div>
+        </div>     </body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Pushing an image to JAPAC Prod Registry</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body class="theme-default aui-theme-default">
+        <div id="page">
+            <div id="main" class="aui-page-panel">
+                <div id="main-header">
+                    <div id="breadcrumb-section">
+                        <ol id="breadcrumbs">
+                            <li class="first">
+                                <span><a href="index.html"></a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="2057266878.html">How To&#39;s</a></span>
+                            </li>
+                                                </ol>
+                    </div>
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                             Pushing an image to JAPAC Prod Registry
+                        </span>
+                    </h1>
+                </div>
+
+                <div id="content" class="view">
+                    <div class="page-metadata">
+                        
+        
+    
+        
+    
+        
+        
+            Created by <span class='author'> Sougata Laga</span>, last modified on Aug 26, 2022
+                        </div>
+                    <div id="main-content" class="wiki-content group">
+                    <p><span style="color: rgb(0,0,0);">This document is a quick guide to help push an image to our JAPAC prod registry.</span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><strong><u>Step-1</u> - </strong> <strong>prepare </strong>your <strong>local image</strong>. (pull from dockerhub). For eg, let us take an example of this image: <strong><span style="color: rgb(232,145,45);">jenkins/jenkins:lts-jdk11</span></strong></span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><span class="confluence-embedded-file-wrapper image-center-wrapper"><img class="confluence-embedded-image image-center" draggable="false" src="attachments/4681572211/4681572243.png" data-image-src="attachments/4681572211/4681572243.png" data-unresolved-comment-count="0" data-linked-resource-id="4681572243" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2022-8-24_17-52-42.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="4681572211" data-linked-resource-container-version="3"></span></span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><strong>Step-2</strong> : <strong>Tag </strong>that image to JAPAC Staging Repo</span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><span class="confluence-embedded-file-wrapper image-center-wrapper"><img class="confluence-embedded-image image-center" draggable="false" src="attachments/4681572211/4681572256.png" data-image-src="attachments/4681572211/4681572256.png" data-unresolved-comment-count="0" data-linked-resource-id="4681572256" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2022-8-24_17-54-6.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="4681572211" data-linked-resource-container-version="3"></span></span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><strong>Step-3</strong>: <strong>Push </strong>the image to <strong>JAPAC Staging Repo</strong></span></p><p><br/></p><p><span style="color: rgb(0,0,0);">If we want to put any image to <strong>PROD registry</strong> (<strong><a class="external-link" href="http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com" rel="nofollow" style="color: rgb(0,0,0);">fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com</a>:5000</strong>), (UI is <span style="color: rgb(209,210,211);"><span> </span></span><a class="external-link" href="http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:8021/" rel="nofollow" style="text-decoration: none;text-align: left;">http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:8021/</a>), then <strong>→ </strong></span></p><p><span style="color: rgb(0,0,0);">we first have to push to a <strong>staging registry which is : <a class="external-link" href="http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com" rel="nofollow" style="color: rgb(0,0,0);">fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com</a>:6000</strong></span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><span class="confluence-embedded-file-wrapper image-center-wrapper"><img class="confluence-embedded-image image-center" draggable="false" src="attachments/4681572211/4681572283.png" data-image-src="attachments/4681572211/4681572283.png" data-unresolved-comment-count="0" data-linked-resource-id="4681572283" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2022-8-24_17-55-31.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="4681572211" data-linked-resource-container-version="3"></span></span></p><p><br/></p><p>now the image should be <strong>available</strong> on <strong>remote repo</strong> (i.e. JAPAC Staging repo - i.e. <a class="external-link" href="http://128.snbomprshared1.gbucdsint02bom.oraclevcn.com" rel="nofollow">128.snbomprshared1.gbucdsint02bom.oraclevcn.com</a>:6000).</p><p><br style="text-align: left;"/>We can also <strong>verify </strong>it using the URL: <a class="external-link" href="http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:8022/" rel="nofollow" style="text-decoration: none;text-align: left;">http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:8022/</a> (<strong>JAPAC PROD REGISTR</strong>Y)</p><p><br/></p><p><strong><span style="color: rgb(0,0,0);">Step-4: </span></strong><span style="color: rgb(0,0,0);">Send <strong>mail</strong> to <strong>Liyakat<br/><br/></strong></span></p><p><span style="color: rgb(0,0,0);">He <strong>will push to PROD registry</strong> (i.e. <a class="external-link" href="http://fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com" rel="nofollow" style="color: rgb(0,0,0);">fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com</a>:5000.) </span></p><p><span style="color: rgb(0,0,0);">once its pushed, he will <strong>confirm</strong>, and we will have to <strong>verify </strong>its there. </span></p><p><br/></p><p><span style="color: rgb(0,0,0);"><u><strong>NOTE</strong></u>:<strong> </strong><strong><u>128 is our PROD server.</u></strong></span><strong><u>  We should not enter there, unless there is an emergency<span style="color: rgb(0,0,0);">. all these commands should be done on our development VMs.</span></u></strong></p><p><br/></p><p><br/></p><p>Hope this helps!</p><p><br/></p><p><br/></p><p><br/></p>
+                    </div>
+
+                                                            <div class="pageSection group">
+                        <div class="pageSectionHeader">
+                            <h2 id="attachments" class="pageSectionTitle">Attachments:</h2>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/4681572211/4681572243.png">image2022-8-24_17-52-42.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/4681572211/4681572256.png">image2022-8-24_17-54-6.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/4681572211/4681572283.png">image2022-8-24_17-55-31.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/4681572211/4681572294.png">image2022-8-24_17-56-8.png</a> (image/png)
+                                <br/>
+                                                    </div>
+                    </div>
+                    
+                                                      
+                </div>             </div> 
+            <div id="footer" role="contentinfo">
+                <section class="footer-body">
+                    <p>Document generated by Confluence on Jan 26, 2023 11:18</p>
+                    <div id="footer-logo"><a href="http://www.atlassian.com/">Atlassian</a></div>
+                </section>
+            </div>
+        </div>     </body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> In-Memory Column Store in Oracle Database</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body class="theme-default aui-theme-default">
+        <div id="page">
+            <div id="main" class="aui-page-panel">
+                <div id="main-header">
+                    <div id="breadcrumb-section">
+                        <ol id="breadcrumbs">
+                            <li class="first">
+                                <span><a href="index.html"></a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="2057266878.html">How To&#39;s</a></span>
+                            </li>
+                                                </ol>
+                    </div>
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                             In-Memory Column Store in Oracle Database
+                        </span>
+                    </h1>
+                </div>
+
+                <div id="content" class="view">
+                    <div class="page-metadata">
+                        
+        
+    
+        
+    
+        
+        
+            Created by <span class='author'> Ranjith Vijayan</span>, last modified on Dec 12, 2021
+                        </div>
+                    <div id="main-content" class="wiki-content group">
+                    <p><span style="color: rgb(0,0,0);text-decoration: none;">The In-Memory Column Store (IM column store) allows you to store columns, tables, partitions and materialized views in memory in a columnar format, rather than the typical row format. The advantage of having data in memory extremely high performance of analytical queries</span></p><p>The documentation claims the IM column store is good for the following.</p><ul style="text-decoration: none;"><li>Large scans that apply &quot;=&quot;, &quot;&lt;&quot;, &quot;&gt;&quot; and &quot;IN&quot; filters.</li><li>Queries that return a small number of columns from a table with a large number of columns.</li><li>Queries that join small tables to large tables.</li><li>Queries that aggregate data.</li></ul><p>It also states it is not designed for the following.</p><ul style="text-decoration: none;"><li>Queries with complex predicates.</li><li>Queries that return a large number of columns.</li><li>Queries that return large numbers of rows.</li><li>Queries with multiple large table joins.</li></ul><p><span style="color: rgb(0,0,0);text-decoration: none;"> </span></p><p><span style="color: rgb(0,0,0);text-decoration: none;">A basic example of how to use IM feature is explained in this article. The use-case of this article aims to achieve high performance for reads, and also follow the CQRS pattern for read-write separation. A copy of FLEXCUBE's customer table (STTM_CUSTOMER) is created with only required columns and list of accounts. In this exercise a table of 4.89 million records is used for benchmarking</span></p><p>The example shown here involves creating the new table, and expdp/impdp to a test database- this is only for testing. In the end-state architecture ased on your requirement both these tables may reside in the same PDB. or It can be the same table itself with a few columns stored in-memory.</p><p><br/></p><p><strong>Steps</strong></p><ul><li>Source DB<ul><li>Create view with selected columns, for the active customers, and accounts</li><li>Create table based on that<p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">create or replace view vw_cust as
+select customer_no,customer_type,customer_category,customer_name1,unique_id_name,unique_id_value,acc_list
+from sttm_customer c,
+(
+select cust_no, listagg(cust_ac_no,&#39;,&#39;) within group (order by cust_ac_no) acc_list
+from sttm_cust_account a
+where record_stat = &#39;O&#39;
+group by cust_no
+) b 
+where c.customer_no= b.cust_no (+)
+and record_stat =&#39;O&#39;;
+
+create table tb_cust_im as select * from vw_cust;
+
+</pre>
+</div></div></li><li>Check the table size<p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SQL&gt; SELECT SUM(bytes)/(1024*1024) AS &quot;Size MB&quot;
+FROM dba_extents
+WHERE owner= user AND segment_name=&#39;TB_CUST_IM&#39;;  2    3  
+
+   Size MB
+----------
+       408
+
+SQL&gt; col c form 99999999999
+SQL&gt; col cnt form a80
+SQL&gt; select count(1) c,  TO_CHAR(TO_DATE(count(1),&#39;J&#39;),&#39;JSP&#39;) cnt from tb_cust_im;
+
+           C CNT
+------------ --------------------------------------------------------------------------------
+     4896103 FOUR MILLION EIGHT HUNDRED NINETY-SIX THOUSAND ONE HUNDRED THREE
+
+SQL&gt; </pre>
+</div></div></li><li>export<p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">expdp SFCUBS/SFCUBS@KBZUBSPDB tables=TB_CUST_IM directory=DB_DUMP dumpfile=TB_CUST_IM.dmp logfile=TB_CUST_IM.log</pre>
+</div></div></li></ul></li><li>Destination DB<ul><li><span style="color: rgb(0,0,0);">prepare DB</span><ul><li><span style="color: rgb(0,0,0);">reated a new 19c container using this <a href="https://confluence.oraclecorp.com/confluence/display/FSGBUCT/2.6.3+Running+Oracle+DB+19c+%2819.3-ee%29+all-inclusive">2.6.3 Running Oracle DB 19c (19.3-ee) all-inclusive</a> </span><p><br/></p><p>added in memory_size to 2GB and total SGA Target to 3GB</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">docker run -dit --net my-net --name test-db-19c -p 1521:1521 -v /scratch/share/cvr/dmp:/share fsgbu-mum-128.snbomprshared1.gbucdsint02bom.oraclevcn.com:5000/oracle-db/oracle-oracle-19.3:embedded
+
+docker exec -it test-db-19c bash 
+sqlplus / as sysdba
+ALTER SYSTEM SET SGA_TARGET=3G SCOPE=SPFILE;
+ALTER SYSTEM SET INMEMORY_SIZE=2G SCOPE=SPFILE;
+SHUTDOWN IMMEDIATE;
+STARTUP;
+
+</pre>
+</div></div><p><br/></p><p>below is the result of startup command. you will notice a &quot;in-memory area&quot; is now shown</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">Total System Global Area 3221222240 bytes
+Fixed Size                  9167712 bytes
+Variable Size             289406976 bytes
+Database Buffers          767557632 bytes
+Redo Buffers                7606272 bytes
+In-Memory Area           2147483648 bytes
+Database mounted.
+Database opened.</pre>
+</div></div></li></ul></li><li><span style="color: rgb(0,0,0);">Created a new test user in PDB1 PDB</span><p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SQL&gt; alter session set container=PDB1;
+
+Session altered.
+
+SQL&gt; create user TEST1 identified by TEST1;
+
+User created.
+
+SQL&gt; grant resource,DBA to TEST1;
+
+Grant succeeded.
+
+SQL&gt; create directory DB_DUMP as &#39;/share&#39;;</pre>
+</div></div></li><li><span style="color: rgb(0,0,0);">import (i.e. create test data)</span><ul><li><p><span style="color: rgb(0,0,0);"> </span></p><p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">impdp TEST1/TEST1@PDB1 tables=SFCUBS.TB_CUST_IM directory=DB_DUMP dumpfile=TB_CUST_IM.dmp logfile=TB_CUST_IM.imp.log remap_schema=SFCUBS:TEST1 remap_tablespace=SFCUBS144:USERS
+
+</pre>
+</div></div><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SQL&gt; !impdp TEST1/TEST1@PDB1 tables=SFCUBS.TB_CUST_IM directory=DB_DUMP dumpfile=TB_CUST_IM.dmp logfile=TB_CUST_IM.imp1.log remap_schema=SFCUBS:TEST1 remap_tablespace=SFCUBS144:USERS
+
+Import: Release 19.0.0.0.0 - Production on Sun Dec 12 04:15:04 2021
+Version 19.3.0.0.0
+
+Copyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Connected to: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Master table &quot;TEST1&quot;.&quot;SYS_IMPORT_TABLE_01&quot; successfully loaded/unloaded
+Starting &quot;TEST1&quot;.&quot;SYS_IMPORT_TABLE_01&quot;:  TEST1/********@PDB1 tables=SFCUBS.TB_CUST_IM directory=DB_DUMP dumpfile=TB_CUST_IM.dmp logfile=TB_CUST_IM.imp1.log remap_schema=SFCUBS:TEST1 remap_tablespace=SFCUBS144:USERS 
+Processing object type TABLE_EXPORT/TABLE/TABLE
+Processing object type TABLE_EXPORT/TABLE/TABLE_DATA
+. . imported &quot;TEST1&quot;.&quot;TB_CUST_IM&quot;                        349.5 MB 4896103 rows
+Processing object type TABLE_EXPORT/TABLE/STATISTICS/TABLE_STATISTICS
+Processing object type TABLE_EXPORT/TABLE/STATISTICS/MARKER
+Job &quot;TEST1&quot;.&quot;SYS_IMPORT_TABLE_01&quot; successfully completed at Sun Dec 12 04:16:06 2021 elapsed 0 00:00:57</pre>
+</div></div></li></ul></li><li><p>Create a copy of the table as normal, to compare the performance of In-Memory vs normal row storage</p><p><br/></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">create table TB_CUST_NOIM as select * from TB_CUST_IM;</pre>
+</div></div></li><li>Change the table to In-memory</li><li><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">ALTER TABLE TB_CUST_IM inmemory priority critical;</pre>
+</div></div></li><li>Test some queries... I will be showing both IM and non_IM for comparison</li><li><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">set autotrace on explain feed on timing on line 9999
+col customer_no form a9
+col CUSTOMER_TYPE form a1
+col CUSTOMER_CATEGORY form a15
+col CUSTOMER_NAME1 form a40
+col UNIQUE_ID_NAME form a10
+col UNIQUE_ID_VALUE form a10
+col ACC_LIST form a80
+
+select * from TB_CUST_IM where customer_no =&#39;028000001&#39;;
+select * from TB_CUST_NOIM where customer_no =&#39;028000001&#39;;
+
+
+select * from TB_CUST_IM where ACC_LIST like &#39;%KBZ401KBZ00000603%&#39;
+select * from TB_CUST_NOIM where ACC_LIST like &#39;%KBZ401KBZ00000603%&#39;
+
+
+select * from TB_CUST_IM where CUSTOMER_NAME1 like &#39;RAJESH%&#39;;
+select * from TB_CUST_NOIM where CUSTOMER_NAME1 like &#39;RAJESH%&#39;;
+
+</pre>
+</div></div></li><li>Result<ul><li><p>First query. Result is  Elapsed: 00:00:00.<span style="color: rgb(51,153,102);"><strong>01</strong></span> vs 00:00:00.<span style="color: rgb(255,0,0);"><strong>36</strong></span></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SQL&gt; select * from TB_CUST_IM where customer_no =&#39;028000001&#39;;
+CUSTOMER_ C CUSTOMER_CATEGO CUSTOMER_NAME1                           UNIQUE_ID_ UNIQUE_ID_ ACC_LIST
+--------- - --------------- ---------------------------------------- ---------- ---------- --------------------------------------------------------------------------------
+028000001 B WALKIN          028000001_CUSTOMER_NAME1
+
+1 row selected.
+
+Elapsed: 00:00:00.01
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 866794187
+
+-----------------------------------------------------------------------------------------
+| Id  | Operation                  | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT           |            |     1 |    72 |   664  (20)| 00:00:01 |
+|*  1 |  TABLE ACCESS INMEMORY FULL| TB_CUST_IM |     1 |    72 |   664  (20)| 00:00:01 |
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - inmemory(&quot;CUSTOMER_NO&quot;=&#39;028000001&#39;)
+       filter(&quot;CUSTOMER_NO&quot;=&#39;028000001&#39;)
+
+SQL&gt; select * from TB_CUST_NOIM where customer_no =&#39;028000001&#39;;
+
+CUSTOMER_ C CUSTOMER_CATEGO CUSTOMER_NAME1                           UNIQUE_ID_ UNIQUE_ID_ ACC_LIST
+--------- - --------------- ---------------------------------------- ---------- ---------- --------------------------------------------------------------------------------
+028000001 B WALKIN          028000001_CUSTOMER_NAME1
+
+1 row selected.
+
+Elapsed: 00:00:00.36
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 1539167392
+
+----------------------------------------------------------------------------------
+| Id  | Operation         | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |              |     1 |    72 | 14103   (1)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| TB_CUST_NOIM |     1 |    72 | 14103   (1)| 00:00:01 |
+----------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter(&quot;CUSTOMER_NO&quot;=&#39;028000001&#39;)
+
+SQL&gt; </pre>
+</div></div></li><li><p>Second query. Result is  Elapsed: 00:00:00.<span style="color: rgb(51,153,102);"><strong>02</strong></span> vs 00:00:00.<span style="color: rgb(255,0,0);"><strong>43</strong></span></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SQL&gt; select * from TB_CUST_IM where ACC_LIST like &#39;%KBZ401KBZ00000603%&#39;;
+
+CUSTOMER_ C CUSTOMER_CATEGO CUSTOMER_NAME1                           UNIQUE_ID_ UNIQUE_ID_ ACC_LIST
+--------- - --------------- ---------------------------------------- ---------- ---------- --------------------------------------------------------------------------------
+KBZ000006 I IND_SINGLE      RAJESH KUMAR                                                   KBZ301KBZ00000601,KBZ301KBZ00000602,KBZ301KBZ00000603,KBZ401KBZ00000601,KBZ401KB
+                                                                                           Z00000602,KBZ401KBZ00000603
+
+
+1 row selected.
+
+Elapsed: 00:00:00.02
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 866794187
+
+-----------------------------------------------------------------------------------------
+| Id  | Operation                  | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT           |            |   541 | 38952 |   707  (25)| 00:00:01 |
+|*  1 |  TABLE ACCESS INMEMORY FULL| TB_CUST_IM |   541 | 38952 |   707  (25)| 00:00:01 |
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - inmemory(&quot;ACC_LIST&quot; IS NOT NULL AND &quot;ACC_LIST&quot; LIKE &#39;%KBZ401KBZ00000603%&#39;)
+       filter(&quot;ACC_LIST&quot; IS NOT NULL AND &quot;ACC_LIST&quot; LIKE &#39;%KBZ401KBZ00000603%&#39;)
+
+SQL&gt; 
+
+SQL&gt; select * from TB_CUST_NOIM where ACC_LIST like &#39;%KBZ401KBZ00000603%&#39;;
+
+CUSTOMER_ C CUSTOMER_CATEGO CUSTOMER_NAME1                           UNIQUE_ID_ UNIQUE_ID_ ACC_LIST
+--------- - --------------- ---------------------------------------- ---------- ---------- --------------------------------------------------------------------------------
+KBZ000006 I IND_SINGLE      RAJESH KUMAR                                                   KBZ301KBZ00000601,KBZ301KBZ00000602,KBZ301KBZ00000603,KBZ401KBZ00000601,KBZ401KB
+                                                                                           Z00000602,KBZ401KBZ00000603
+
+
+1 row selected.
+
+Elapsed: 00:00:00.43
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 1539167392
+
+----------------------------------------------------------------------------------
+| Id  | Operation         | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |              |   541 | 38952 | 14117   (1)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| TB_CUST_NOIM |   541 | 38952 | 14117   (1)| 00:00:01 |
+----------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter(&quot;ACC_LIST&quot; IS NOT NULL AND &quot;ACC_LIST&quot; LIKE
+              &#39;%KBZ401KBZ00000603%&#39;)
+
+
+</pre>
+</div></div></li><li><p>Third query, Result is  Elapsed: 00:00:00.<span style="color: rgb(51,153,102);"><strong>01</strong></span> vs 00:00:00.<span style="color: rgb(255,0,0);"><strong>61</strong></span></p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SQL&gt; select * from TB_CUST_IM where CUSTOMER_NAME1 like &#39;RAJESH%&#39;;
+
+CUSTOMER_ C CUSTOMER_CATEGO CUSTOMER_NAME1                           UNIQUE_ID_ UNIQUE_ID_ ACC_LIST
+--------- - --------------- ---------------------------------------- ---------- ---------- --------------------------------------------------------------------------------
+KBZ000006 I IND_SINGLE      RAJESH KUMAR                                                   KBZ301KBZ00000601,KBZ301KBZ00000602,KBZ301KBZ00000603,KBZ401KBZ00000601,KBZ401KB
+                                                                                           Z00000602,KBZ401KBZ00000603
+
+
+1 row selected.
+
+Elapsed: 00:00:00.01
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 866794187
+
+-----------------------------------------------------------------------------------------
+| Id  | Operation                  | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT           |            |     1 |    72 |   672  (21)| 00:00:01 |
+|*  1 |  TABLE ACCESS INMEMORY FULL| TB_CUST_IM |     1 |    72 |   672  (21)| 00:00:01 |
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - inmemory(&quot;CUSTOMER_NAME1&quot; LIKE &#39;RAJESH%&#39;)
+       filter(&quot;CUSTOMER_NAME1&quot; LIKE &#39;RAJESH%&#39;)
+
+SQL&gt; 
+SQL&gt; select * from TB_CUST_NOIM where CUSTOMER_NAME1 like &#39;RAJESH%&#39;;
+
+CUSTOMER_ C CUSTOMER_CATEGO CUSTOMER_NAME1                           UNIQUE_ID_ UNIQUE_ID_ ACC_LIST
+--------- - --------------- ---------------------------------------- ---------- ---------- --------------------------------------------------------------------------------
+KBZ000006 I IND_SINGLE      RAJESH KUMAR                                                   KBZ301KBZ00000601,KBZ301KBZ00000602,KBZ301KBZ00000603,KBZ401KBZ00000601,KBZ401KB
+                                                                                           Z00000602,KBZ401KBZ00000603
+
+
+1 row selected.
+
+Elapsed: 00:00:00.61
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 1539167392
+
+----------------------------------------------------------------------------------
+| Id  | Operation         | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |              |     1 |    72 | 14121   (1)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| TB_CUST_NOIM |     1 |    72 | 14121   (1)| 00:00:01 |
+----------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter(&quot;CUSTOMER_NAME1&quot; LIKE &#39;RAJESH%&#39;)
+
+SQL&gt; </pre>
+</div></div></li></ul></li></ul></li></ul>
+                    </div>
+
+                                        
+                                                      
+                </div>             </div> 
+            <div id="footer" role="contentinfo">
+                <section class="footer-body">
+                    <p>Document generated by Confluence on Jan 26, 2023 11:18</p>
+                    <div id="footer-logo"><a href="http://www.atlassian.com/">Atlassian</a></div>
+                </section>
+            </div>
+        </div>     </body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> JSON documents using External Tables and access using SQL and SODA</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body class="theme-default aui-theme-default">
+        <div id="page">
+            <div id="main" class="aui-page-panel">
+                <div id="main-header">
+                    <div id="breadcrumb-section">
+                        <ol id="breadcrumbs">
+                            <li class="first">
+                                <span><a href="index.html"></a></span>
+                            </li>
+                                                    <li>
+                                <span><a href="2057266878.html">How To&#39;s</a></span>
+                            </li>
+                                                </ol>
+                    </div>
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                             JSON documents using External Tables and access using SQL and SODA
+                        </span>
+                    </h1>
+                </div>
+
+                <div id="content" class="view">
+                    <div class="page-metadata">
+                        
+        
+    
+        
+    
+        
+        
+            Created by <span class='author'> Ranjith Vijayan</span>, last modified on Aug 17, 2022
+                        </div>
+                    <div id="main-content" class="wiki-content group">
+                    <p>This article covers an example of how to easily access JSON documents in Oracle DB without loading! This approach may be useful for some integration use-cases wherein json data needs to be processed/uploaded into traditional tables. Instead of writing complicated parsing &amp; loading routines, the &quot;schema-less&quot; datamodel using JSON will be a natural fit for RESTful development techniques, and the power of SQL would come in handy for analytic requirements.</p><p>Oracle 21c introduced a new JSON data type. You should use this in preference to other data types. More details <a class="external-link" href="https://oracle-base.com/articles/21c/json-data-type-21c" rel="nofollow">here</a>.</p><p><br/></p><ul><li>The JSON document file.<ul><li>The example given in this doc is based on <a class="external-link" href="https://docs.oracle.com/en/database/oracle/oracle-database/18/adjsn/insert-load-and-update-json-data.html#GUID-2F400CD8-AB47-4CA9-BA3C-9C536498A33F" rel="nofollow">Oracle DB JSON Developer's Guide</a>. A sample file is given in <a class="external-link" href="https://raw.githubusercontent.com/oracle-samples/db-sample-schemas/main/order_entry/PurchaseOrders.dmp" rel="nofollow">Github</a> that is a typical json dump format of NOSQL databases. i.e. its JSON objects separated by CRLF</li><li>The use-case I was working on was for ingesting data from external database (MSSQL) - The queries used to produce JSON output in desired format is given here for reference. We use a docker container of mssql for this example.</li></ul></li></ul><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">docker run --name mssql -e &quot;ACCEPT_EULA=Y&quot; -e &quot;SA_PASSWORD=Y0urStr0ngPassw0rd&quot; -p 1433:1433 -v /scratch/db-docker/obpm-db-14-6/share/:/share -d mcr.microsoft.com/mssql/server:2019-latest
+docker exec -it mssql bash -c &quot;/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P &#39;Y0urStr0ngPassw0rd&#39; -Q &#39;set nocount on;SELECT [value] FROM OPENJSON((select * from sys.databases for json PATH))&#39; -y0 -o /share/data.json&quot;</pre>
+</div></div><ul><li style="list-style-type: none;"><ul><li>The above query using sqlcmd will output the table sys.databases into data.json with following content. query with &quot;for JSON PATH&quot; produces the output in JSON format. -y0 is for not truncating the data. &quot;set nocount on&quot; is basically equivalent of &quot;set feed off&quot; in sql*plus.</li></ul></li></ul><div class="code panel pdl" style="border-width: 1px;">
+ <div class="codeHeader panelHeader pdl hide-border-bottom">
+  <b class="code-title"></b><span class="collapse-source expand-control" style="display:none;"><span class="expand-control-icon icon">&nbsp;</span><span class="expand-control-text">Expand source</span></span><span class="collapse-spinner-wrapper"></span>
+ </div>
+ <div class="codeContent panelContent pdl hide-toolbar"> 
+  <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence; collapse: true" data-theme="Confluence">mssql@7a17d1ac09e1:/$ cat /share/data.json 
+{"name":"master","database_id":1,"owner_sid":"AQ==","create_date":"2003-04-08T09:13:36.390","compatibility_level":150,"collation_name":"SQL_Latin1_General_CP1_CI_AS","user_access":0,"user_access_desc":"MULTI_USER","is_read_only":false,"is_auto_close_on":false,"is_auto_shrink_on":false,"state":0,"state_desc":"ONLINE","is_in_standby":false,"is_cleanly_shutdown":false,"is_supplemental_logging_enabled":false,"snapshot_isolation_state":1,"snapshot_isolation_state_desc":"ON","is_read_committed_snapshot_on":false,"recovery_model":3,"recovery_model_desc":"SIMPLE","page_verify_option":2,"page_verify_option_desc":"CHECKSUM","is_auto_create_stats_on":true,"is_auto_create_stats_incremental_on":false,"is_auto_update_stats_on":true,"is_auto_update_stats_async_on":false,"is_ansi_null_default_on":false,"is_ansi_nulls_on":false,"is_ansi_padding_on":false,"is_ansi_warnings_on":false,"is_arithabort_on":false,"is_concat_null_yields_null_on":false,"is_numeric_roundabort_on":false,"is_quoted_identifier_on":false,"is_recursive_triggers_on":false,"is_cursor_close_on_commit_on":false,"is_local_cursor_default":false,"is_fulltext_enabled":false,"is_trustworthy_on":false,"is_db_chaining_on":true,"is_parameterization_forced":false,"is_master_key_encrypted_by_server":false,"is_query_store_on":false,"is_published":false,"is_subscribed":false,"is_merge_published":false,"is_distributor":false,"is_sync_with_backup":false,"service_broker_guid":"00000000-0000-0000-0000-000000000000","is_broker_enabled":false,"log_reuse_wait":4,"log_reuse_wait_desc":"ACTIVE_TRANSACTION","is_date_correlation_on":false,"is_cdc_enabled":false,"is_encrypted":false,"is_honor_broker_priority_on":false,"containment":0,"containment_desc":"NONE","target_recovery_time_in_seconds":0,"delayed_durability":0,"delayed_durability_desc":"DISABLED","is_memory_optimized_elevate_to_snapshot_on":false,"is_federation_member":false,"is_remote_data_archive_enabled":false,"is_mixed_page_allocation_on":true,"is_temporal_history_retention_enabled":true,"catalog_collation_type":0,"catalog_collation_type_desc":"DATABASE_DEFAULT","physical_database_name":"master","is_result_set_caching_on":false,"is_accelerated_database_recovery_on":false,"is_tempdb_spill_to_remote_store":false,"is_stale_page_detection_on":false,"is_memory_optimized_enabled":true}
+{"name":"tempdb","database_id":2,"owner_sid":"AQ==","create_date":"2022-08-16T15:19:32.507","compatibility_level":150,"collation_name":"SQL_Latin1_General_CP1_CI_AS","user_access":0,"user_access_desc":"MULTI_USER","is_read_only":false,"is_auto_close_on":false,"is_auto_shrink_on":false,"state":0,"state_desc":"ONLINE","is_in_standby":false,"is_cleanly_shutdown":false,"is_supplemental_logging_enabled":false,"snapshot_isolation_state":0,"snapshot_isolation_state_desc":"OFF","is_read_committed_snapshot_on":false,"recovery_model":3,"recovery_model_desc":"SIMPLE","page_verify_option":2,"page_verify_option_desc":"CHECKSUM","is_auto_create_stats_on":true,"is_auto_create_stats_incremental_on":false,"is_auto_update_stats_on":true,"is_auto_update_stats_async_on":false,"is_ansi_null_default_on":false,"is_ansi_nulls_on":false,"is_ansi_padding_on":false,"is_ansi_warnings_on":false,"is_arithabort_on":false,"is_concat_null_yields_null_on":false,"is_numeric_roundabort_on":false,"is_quoted_identifier_on":false,"is_recursive_triggers_on":false,"is_cursor_close_on_commit_on":false,"is_local_cursor_default":false,"is_fulltext_enabled":false,"is_trustworthy_on":false,"is_db_chaining_on":true,"is_parameterization_forced":false,"is_master_key_encrypted_by_server":false,"is_query_store_on":false,"is_published":false,"is_subscribed":false,"is_merge_published":false,"is_distributor":false,"is_sync_with_backup":false,"service_broker_guid":"0E7FA998-68E7-4C88-8637-96D75972D644","is_broker_enabled":true,"log_reuse_wait":0,"log_reuse_wait_desc":"NOTHING","is_date_correlation_on":false,"is_cdc_enabled":false,"is_encrypted":false,"is_honor_broker_priority_on":false,"containment":0,"containment_desc":"NONE","target_recovery_time_in_seconds":60,"delayed_durability":0,"delayed_durability_desc":"DISABLED","is_memory_optimized_elevate_to_snapshot_on":false,"is_federation_member":false,"is_remote_data_archive_enabled":false,"is_mixed_page_allocation_on":false,"is_temporal_history_retention_enabled":true,"catalog_collation_type":0,"catalog_collation_type_desc":"DATABASE_DEFAULT","physical_database_name":"tempdb","is_result_set_caching_on":false,"is_accelerated_database_recovery_on":false,"is_tempdb_spill_to_remote_store":false,"is_stale_page_detection_on":false,"is_memory_optimized_enabled":true}
+{"name":"model","database_id":3,"owner_sid":"AQ==","create_date":"2003-04-08T09:13:36.390","compatibility_level":150,"collation_name":"SQL_Latin1_General_CP1_CI_AS","user_access":0,"user_access_desc":"MULTI_USER","is_read_only":false,"is_auto_close_on":false,"is_auto_shrink_on":false,"state":0,"state_desc":"ONLINE","is_in_standby":false,"is_cleanly_shutdown":false,"is_supplemental_logging_enabled":false,"snapshot_isolation_state":0,"snapshot_isolation_state_desc":"OFF","is_read_committed_snapshot_on":false,"recovery_model":1,"recovery_model_desc":"FULL","page_verify_option":2,"page_verify_option_desc":"CHECKSUM","is_auto_create_stats_on":true,"is_auto_create_stats_incremental_on":false,"is_auto_update_stats_on":true,"is_auto_update_stats_async_on":false,"is_ansi_null_default_on":false,"is_ansi_nulls_on":false,"is_ansi_padding_on":false,"is_ansi_warnings_on":false,"is_arithabort_on":false,"is_concat_null_yields_null_on":false,"is_numeric_roundabort_on":false,"is_quoted_identifier_on":false,"is_recursive_triggers_on":false,"is_cursor_close_on_commit_on":false,"is_local_cursor_default":false,"is_fulltext_enabled":false,"is_trustworthy_on":false,"is_db_chaining_on":false,"is_parameterization_forced":false,"is_master_key_encrypted_by_server":false,"is_query_store_on":false,"is_published":false,"is_subscribed":false,"is_merge_published":false,"is_distributor":false,"is_sync_with_backup":false,"service_broker_guid":"00000000-0000-0000-0000-000000000000","is_broker_enabled":false,"log_reuse_wait":0,"log_reuse_wait_desc":"NOTHING","is_date_correlation_on":false,"is_cdc_enabled":false,"is_encrypted":false,"is_honor_broker_priority_on":false,"containment":0,"containment_desc":"NONE","target_recovery_time_in_seconds":60,"delayed_durability":0,"delayed_durability_desc":"DISABLED","is_memory_optimized_elevate_to_snapshot_on":false,"is_federation_member":false,"is_remote_data_archive_enabled":false,"is_mixed_page_allocation_on":true,"is_temporal_history_retention_enabled":true,"catalog_collation_type":0,"catalog_collation_type_desc":"DATABASE_DEFAULT","physical_database_name":"model","is_result_set_caching_on":false,"is_accelerated_database_recovery_on":false,"is_tempdb_spill_to_remote_store":false,"is_stale_page_detection_on":false,"is_memory_optimized_enabled":true}
+{"name":"msdb","database_id":4,"owner_sid":"AQ==","create_date":"2022-05-29T16:33:42.060","compatibility_level":150,"collation_name":"SQL_Latin1_General_CP1_CI_AS","user_access":0,"user_access_desc":"MULTI_USER","is_read_only":false,"is_auto_close_on":false,"is_auto_shrink_on":false,"state":0,"state_desc":"ONLINE","is_in_standby":false,"is_cleanly_shutdown":false,"is_supplemental_logging_enabled":false,"snapshot_isolation_state":1,"snapshot_isolation_state_desc":"ON","is_read_committed_snapshot_on":false,"recovery_model":3,"recovery_model_desc":"SIMPLE","page_verify_option":2,"page_verify_option_desc":"CHECKSUM","is_auto_create_stats_on":true,"is_auto_create_stats_incremental_on":false,"is_auto_update_stats_on":true,"is_auto_update_stats_async_on":false,"is_ansi_null_default_on":false,"is_ansi_nulls_on":false,"is_ansi_padding_on":false,"is_ansi_warnings_on":false,"is_arithabort_on":false,"is_concat_null_yields_null_on":false,"is_numeric_roundabort_on":false,"is_quoted_identifier_on":false,"is_recursive_triggers_on":false,"is_cursor_close_on_commit_on":false,"is_local_cursor_default":false,"is_fulltext_enabled":true,"is_trustworthy_on":true,"is_db_chaining_on":true,"is_parameterization_forced":false,"is_master_key_encrypted_by_server":false,"is_query_store_on":false,"is_published":false,"is_subscribed":false,"is_merge_published":false,"is_distributor":false,"is_sync_with_backup":false,"service_broker_guid":"9DC5AACE-AA09-40FB-8C6D-13C9D2897444","is_broker_enabled":true,"log_reuse_wait":0,"log_reuse_wait_desc":"NOTHING","is_date_correlation_on":false,"is_cdc_enabled":false,"is_encrypted":false,"is_honor_broker_priority_on":false,"containment":0,"containment_desc":"NONE","target_recovery_time_in_seconds":60,"delayed_durability":0,"delayed_durability_desc":"DISABLED","is_memory_optimized_elevate_to_snapshot_on":false,"is_federation_member":false,"is_remote_data_archive_enabled":false,"is_mixed_page_allocation_on":true,"is_temporal_history_retention_enabled":true,"catalog_collation_type":0,"catalog_collation_type_desc":"DATABASE_DEFAULT","physical_database_name":"msdb","is_result_set_caching_on":false,"is_accelerated_database_recovery_on":false,"is_tempdb_spill_to_remote_store":false,"is_stale_page_detection_on":false,"is_memory_optimized_enabled":true}
+mssql@7a17d1ac09e1:/$ </pre> 
+ </div>
+</div><ul><li>Lets &quot;load&quot; this in Oracle without loading. The file we created is in a directory that Oracle DB can access (if not move this file to make it available for Oracle database)<ul><li><p class="auto-cursor-target">Create Directory</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">create or replace directory JSON_DATA as &#39;/share&#39;;</pre>
+</div></div></li><li><p class="auto-cursor-target">Create an external table</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">CREATE TABLE json_dump_file_contents (json_document BLOB)
+  ORGANIZATION EXTERNAL (TYPE ORACLE_LOADER DEFAULT DIRECTORY JSON_DATA
+                         ACCESS PARAMETERS
+                           (RECORDS DELIMITED BY 0x&#39;0A&#39;
+                            DISABLE_DIRECTORY_LINK_CHECK
+                            FIELDS (json_document CHAR(32000)))
+                         LOCATION (JSON_DATA:&#39;data.json&#39;))
+  PARALLEL
+  REJECT LIMIT UNLIMITED;</pre>
+</div></div></li><li>Read the data<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">select * from json_dump_file_contents;</pre>
+</div></div><span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="250" src="attachments/4605333251/4615742772.png" data-image-src="attachments/4605333251/4615742772.png" data-unresolved-comment-count="0" data-linked-resource-id="4615742772" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2022-8-16_23-35-22.png" data-base-url="https://confluence.oraclecorp.com/confluence" data-linked-resource-content-type="image/png" data-linked-resource-container-id="4605333251" data-linked-resource-container-version="3"></span><ul><li>All the data placed in the file is available for the DB engine to read now</li></ul></li><li>You can also read the JSON elements easily using the &quot;simple dot notation&quot;. E.g.<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">select t.json_document.name, t.json_document.database_id, t.* from json_dump_file_contents t;</pre>
+</div></div><p class="auto-cursor-target"><img src="plugins/servlet/confluence/placeholder/error" title="com.atlassian.confluence.content.render.xhtml.XhtmlException: Missing required attribute: {http://atlassian.com/resource/identifier}value" class="transform-error" data-encoded-xml="%3Cac%3Aimage%3E%3Cri%3Aurl+%2F%3E%3C%2Fac%3Aimage%3E"/></p></li></ul></li><li>The fun doesn't end there. Lets use Oracle JSON features to parse it and make sense of the data<ul><li><p class="auto-cursor-target">JSON Data Guide to &quot;describe&quot; the data</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">SELECT JSON_DATAGUIDE(json_document,DBMS_JSON.pretty) dg_doc
+FROM   json_dump_file_contents;</pre>
+</div></div><p class="auto-cursor-target"><img src="plugins/servlet/confluence/placeholder/error" title="com.atlassian.confluence.content.render.xhtml.XhtmlException: Missing required attribute: {http://atlassian.com/resource/identifier}value" class="transform-error" data-encoded-xml="%3Cac%3Aimage+ac%3Aheight%3D%22250%22%3E%3Cri%3Aurl+%2F%3E%3C%2Fac%3Aimage%3E"/></p><ul><li>Database will read the document contents and make a dictionary out of it.</li></ul></li><li>Since the data is not really loaded to the DB, every time when you query the data, it reads the file directly. But for better performance if you have multiple queries that target different rows, you can load an ordinary database table from the data in the external table. This also offers other benefits such as you can index the data, and make automatic views representing the JSON document in traditional RDBMS structure<ul><li><p class="auto-cursor-target">Create &quot;normal&quot; table. A check constraint is put to ensure document is JSON. With Oracle 21c JSON datatype this is not required.</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">CREATE TABLE t_json_dump_file_contents
+  (id          VARCHAR2 (32) NOT NULL PRIMARY KEY,
+   date_loaded TIMESTAMP (6) WITH TIME ZONE,
+   json_document BLOB
+   CONSTRAINT ensure_json CHECK (json_document IS JSON))
+  LOB (json_document) STORE AS (CACHE);</pre>
+</div></div></li><li><p class="auto-cursor-target">Load the data</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">INSERT INTO t_json_dump_file_contents (id, date_loaded, json_document)
+  SELECT SYS_GUID(), SYSTIMESTAMP, json_document FROM json_dump_file_contents
+    WHERE json_document IS JSON;</pre>
+</div></div></li><li>Now you can query the data coming from the normal table.<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">select t.json_document.name, t.json_document.database_id, t.* from t_json_dump_file_contents t;</pre>
+</div></div><p class="auto-cursor-target"><img src="plugins/servlet/confluence/placeholder/error" title="com.atlassian.confluence.content.render.xhtml.XhtmlException: Missing required attribute: {http://atlassian.com/resource/identifier}value" class="transform-error" data-encoded-xml="%3Cac%3Aimage%3E%3Cri%3Aurl+%2F%3E%3C%2Fac%3Aimage%3E"/></p></li><li>Create Search Index<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">CREATE SEARCH INDEX json_docs_search_idx1 ON t_json_dump_file_contents (json_document) FOR JSON;</pre>
+</div></div></li><li>We can now create a view - that automatically understands the data model as per JSON documents present in the table<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">BEGIN
+  DBMS_JSON.create_view(
+    viewname  =&gt; &#39;json_documents_v1&#39;,
+    tablename =&gt; &#39;t_json_dump_file_contents&#39;,
+    jcolname  =&gt; &#39;json_document&#39;,
+    dataguide =&gt;  DBMS_JSON.get_index_dataguide(
+                    &#39;t_json_dump_file_contents&#39;,
+                    &#39;json_document&#39;,
+                    DBMS_JSON.format_hierarchical));
+END;
+/
+
+</pre>
+</div></div></li><li>Select from the view<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">select * from json_documents_v1;</pre>
+</div></div><p class="auto-cursor-target"><img src="plugins/servlet/confluence/placeholder/error" title="com.atlassian.confluence.content.render.xhtml.XhtmlException: Missing required attribute: {http://atlassian.com/resource/identifier}value" class="transform-error" data-encoded-xml="%3Cac%3Aimage%3E%3Cri%3Aurl+%2F%3E%3C%2Fac%3Aimage%3E"/></p></li><li>You would notice that the JSON data is now automatically represented in RDBMS structure, with rows and columns - and any SQL can be written for analytics purposes</li></ul></li></ul></li><li>TIP: DBMS_JSON.create_view cannot be done directly on the external table. But if you dont want to have this &quot;normal&quot; table in the picture, and want the data always from external table, but in the RDMS view format... Then you can temporarily create this normal table and view like above, and then the DDL of the view to point to the external table. you can also rename the column to remove &quot;JSON_DOCUMENT$&quot; prefix if not needed.<ul><li><p class="auto-cursor-target">E.g.</p><div class="code panel pdl" style="border-width: 1px;">
+ <div class="codeHeader panelHeader pdl hide-border-bottom">
+  <b class="code-title"></b><span class="collapse-source expand-control" style="display:none;"><span class="expand-control-icon icon">&nbsp;</span><span class="expand-control-text">Expand source</span></span><span class="collapse-spinner-wrapper"></span>
+ </div>
+ <div class="codeContent panelContent pdl hide-toolbar"> 
+  <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence; collapse: true" data-theme="Confluence">create or replace view vw_json_dump_file_contents as
+SELECT
+    "name",
+    "state",
+    "owner_sid",
+    "state_desc",
+    "containment",
+    "create_date",
+    "database_id",
+    "user_access",
+    "is_encrypted",
+    "is_published",
+    "is_read_only",
+    "is_in_standby",
+    "is_subscribed",
+    "collation_name",
+    "is_cdc_enabled",
+    "is_distributor",
+    "log_reuse_wait",
+    "recovery_model",
+    "containment_desc",
+    "is_ansi_nulls_on",
+    "is_arithabort_on",
+    "is_auto_close_on",
+    "user_access_desc",
+    "is_auto_shrink_on",
+    "is_broker_enabled",
+    "is_db_chaining_on",
+    "is_query_store_on",
+    "is_trustworthy_on",
+    "delayed_durability",
+    "is_ansi_padding_on",
+    "is_merge_published",
+    "page_verify_option",
+    "compatibility_level",
+    "is_ansi_warnings_on",
+    "is_cleanly_shutdown",
+    "is_fulltext_enabled",
+    "is_sync_with_backup",
+    "log_reuse_wait_desc",
+    "recovery_model_desc",
+    "service_broker_guid",
+    "is_federation_member",
+    "catalog_collation_type",
+    "is_date_correlation_on",
+    "physical_database_name",
+    "delayed_durability_desc",
+    "is_ansi_null_default_on",
+    "is_auto_create_stats_on",
+    "is_auto_update_stats_on",
+    "is_local_cursor_default",
+    "is_quoted_identifier_on",
+    "page_verify_option_desc",
+    "is_numeric_roundabort_on",
+    "is_recursive_triggers_on",
+    "is_result_set_caching_on",
+    "snapshot_isolation_state",
+    "is_parameterization_forced",
+    "is_stale_page_detection_on",
+    "catalog_collation_type_desc",
+    "is_honor_broker_priority_on",
+    "is_memory_optimized_enabled",
+    "is_mixed_page_allocation_on",
+    "is_cursor_close_on_commit_on",
+    "is_auto_update_stats_async_on",
+    "is_concat_null_yields_null_on",
+    "is_read_committed_snapshot_on",
+    "snapshot_isolation_state_desc",
+    "is_remote_data_archive_enabled",
+    "is_supplemental_logging_enabled",
+    "is_tempdb_spill_to_remote_store",
+    "target_recovery_time_in_seconds",
+    "is_master_key_encrypted_by_server",
+    "is_accelerated_database_recovery_on",
+    "is_auto_create_stats_incremental_on",
+    "is_temporal_history_retention_enabled",
+    "is_memory_optimized_elevate_to_snapshot_on"
+FROM
+    "RESTUTIL".json_dump_file_contents RT,
+    JSON_TABLE ( "JSON_DOCUMENT" FORMAT JSON, '$'
+            COLUMNS
+                "name" VARCHAR2 ( 8 ) PATH '$.name',
+                "state" NUMBER PATH '$.state',
+                "owner_sid" VARCHAR2 ( 4 ) PATH '$.owner_sid',
+                "state_desc" VARCHAR2 ( 8 ) PATH '$.state_desc',
+                "containment" NUMBER PATH '$.containment',
+                "create_date" VARCHAR2 ( 32 ) PATH '$.create_date',
+                "database_id" NUMBER PATH '$.database_id',
+                "user_access" NUMBER PATH '$.user_access',
+                "is_encrypted" VARCHAR2 ( 8 ) PATH '$.is_encrypted',
+                "is_published" VARCHAR2 ( 8 ) PATH '$.is_published',
+                "is_read_only" VARCHAR2 ( 8 ) PATH '$.is_read_only',
+                "is_in_standby" VARCHAR2 ( 8 ) PATH '$.is_in_standby',
+                "is_subscribed" VARCHAR2 ( 8 ) PATH '$.is_subscribed',
+                "collation_name" VARCHAR2 ( 32 ) PATH '$.collation_name',
+                "is_cdc_enabled" VARCHAR2 ( 8 ) PATH '$.is_cdc_enabled',
+                "is_distributor" VARCHAR2 ( 8 ) PATH '$.is_distributor',
+                "log_reuse_wait" NUMBER PATH '$.log_reuse_wait',
+                "recovery_model" NUMBER PATH '$.recovery_model',
+                "containment_desc" VARCHAR2 ( 4 ) PATH '$.containment_desc',
+                "is_ansi_nulls_on" VARCHAR2 ( 8 ) PATH '$.is_ansi_nulls_on',
+                "is_arithabort_on" VARCHAR2 ( 8 ) PATH '$.is_arithabort_on',
+                "is_auto_close_on" VARCHAR2 ( 8 ) PATH '$.is_auto_close_on',
+                "user_access_desc" VARCHAR2 ( 16 ) PATH '$.user_access_desc',
+                "is_auto_shrink_on" VARCHAR2 ( 8 ) PATH '$.is_auto_shrink_on',
+                "is_broker_enabled" VARCHAR2 ( 8 ) PATH '$.is_broker_enabled',
+                "is_db_chaining_on" VARCHAR2 ( 8 ) PATH '$.is_db_chaining_on',
+                "is_query_store_on" VARCHAR2 ( 8 ) PATH '$.is_query_store_on',
+                "is_trustworthy_on" VARCHAR2 ( 8 ) PATH '$.is_trustworthy_on',
+                "delayed_durability" NUMBER PATH '$.delayed_durability',
+                "is_ansi_padding_on" VARCHAR2 ( 8 ) PATH '$.is_ansi_padding_on',
+                "is_merge_published" VARCHAR2 ( 8 ) PATH '$.is_merge_published',
+                "page_verify_option" NUMBER PATH '$.page_verify_option',
+                "compatibility_level" NUMBER PATH '$.compatibility_level',
+                "is_ansi_warnings_on" VARCHAR2 ( 8 ) PATH '$.is_ansi_warnings_on',
+                "is_cleanly_shutdown" VARCHAR2 ( 8 ) PATH '$.is_cleanly_shutdown',
+                "is_fulltext_enabled" VARCHAR2 ( 8 ) PATH '$.is_fulltext_enabled',
+                "is_sync_with_backup" VARCHAR2 ( 8 ) PATH '$.is_sync_with_backup',
+                "log_reuse_wait_desc" VARCHAR2 ( 8 ) PATH '$.log_reuse_wait_desc',
+                "recovery_model_desc" VARCHAR2 ( 8 ) PATH '$.recovery_model_desc',
+                "service_broker_guid" VARCHAR2 ( 64 ) PATH '$.service_broker_guid',
+                "is_federation_member" VARCHAR2 ( 8 ) PATH '$.is_federation_member',
+                "catalog_collation_type" NUMBER PATH '$.catalog_collation_type',
+                "is_date_correlation_on" VARCHAR2 ( 8 ) PATH '$.is_date_correlation_on',
+                "physical_database_name" VARCHAR2 ( 8 ) PATH '$.physical_database_name',
+                "delayed_durability_desc" VARCHAR2 ( 8 ) PATH '$.delayed_durability_desc',
+                "is_ansi_null_default_on" VARCHAR2 ( 8 ) PATH '$.is_ansi_null_default_on',
+                "is_auto_create_stats_on" VARCHAR2 ( 4 ) PATH '$.is_auto_create_stats_on',
+                "is_auto_update_stats_on" VARCHAR2 ( 4 ) PATH '$.is_auto_update_stats_on',
+                "is_local_cursor_default" VARCHAR2 ( 8 ) PATH '$.is_local_cursor_default',
+                "is_quoted_identifier_on" VARCHAR2 ( 8 ) PATH '$.is_quoted_identifier_on',
+                "page_verify_option_desc" VARCHAR2 ( 8 ) PATH '$.page_verify_option_desc',
+                "is_numeric_roundabort_on" VARCHAR2 ( 8 ) PATH '$.is_numeric_roundabort_on',
+                "is_recursive_triggers_on" VARCHAR2 ( 8 ) PATH '$.is_recursive_triggers_on',
+                "is_result_set_caching_on" VARCHAR2 ( 8 ) PATH '$.is_result_set_caching_on',
+                "snapshot_isolation_state" NUMBER PATH '$.snapshot_isolation_state',
+                "is_parameterization_forced" VARCHAR2 ( 8 ) PATH '$.is_parameterization_forced',
+                "is_stale_page_detection_on" VARCHAR2 ( 8 ) PATH '$.is_stale_page_detection_on',
+                "catalog_collation_type_desc" VARCHAR2 ( 16 ) PATH '$.catalog_collation_type_desc',
+                "is_honor_broker_priority_on" VARCHAR2 ( 8 ) PATH '$.is_honor_broker_priority_on',
+                "is_memory_optimized_enabled" VARCHAR2 ( 4 ) PATH '$.is_memory_optimized_enabled',
+                "is_mixed_page_allocation_on" VARCHAR2 ( 8 ) PATH '$.is_mixed_page_allocation_on',
+                "is_cursor_close_on_commit_on" VARCHAR2 ( 8 ) PATH '$.is_cursor_close_on_commit_on',
+                "is_auto_update_stats_async_on" VARCHAR2 ( 8 ) PATH '$.is_auto_update_stats_async_on',
+                "is_concat_null_yields_null_on" VARCHAR2 ( 8 ) PATH '$.is_concat_null_yields_null_on',
+                "is_read_committed_snapshot_on" VARCHAR2 ( 8 ) PATH '$.is_read_committed_snapshot_on',
+                "snapshot_isolation_state_desc" VARCHAR2 ( 4 ) PATH '$.snapshot_isolation_state_desc',
+                "is_remote_data_archive_enabled" VARCHAR2 ( 8 ) PATH '$.is_remote_data_archive_enabled',
+                "is_supplemental_logging_enabled" VARCHAR2 ( 8 ) PATH '$.is_supplemental_logging_enabled',
+                "is_tempdb_spill_to_remote_store" VARCHAR2 ( 8 ) PATH '$.is_tempdb_spill_to_remote_store',
+                "target_recovery_time_in_seconds" NUMBER PATH '$.target_recovery_time_in_seconds',
+                "is_master_key_encrypted_by_server" VARCHAR2 ( 8 ) PATH '$.is_master_key_encrypted_by_server',
+                "is_accelerated_database_recovery_on" VARCHAR2 ( 8 ) PATH '$.is_accelerated_database_recovery_on',
+                "is_auto_create_stats_incremental_on" VARCHAR2 ( 8 ) PATH '$.is_auto_create_stats_incremental_on',
+                "is_temporal_history_retention_enabled" VARCHAR2 ( 4 ) PATH '$.is_temporal_history_retention_enabled',
+                "is_memory_optimized_elevate_to_snapshot_on" VARCHAR2 ( 8 ) PATH '$.is_memory_optimized_elevate_to_snapshot_on'
+        )
+    JT</pre> 
+ </div>
+</div></li><li>Now the data will be directly fetched from the external file and presented to you in RDBMS format.</li></ul></li></ul><p><br/></p><ul><li><strong>SODA Access</strong></li><li>*** Literature to be added later ***<br/><ul><li><p class="auto-cursor-target">Create collection</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">DECLARE
+  l_collection  SODA_COLLECTION_T;
+BEGIN
+  l_collection := DBMS_SODA.create_collection(&#39;TestCollection1&#39;);
+
+  IF l_collection IS NOT NULL THEN
+    DBMS_OUTPUT.put_line(&#39;Collection ID : &#39; || l_collection.get_name());
+  ELSE
+    DBMS_OUTPUT.put_line(&#39;Collection does not exist.&#39;);  
+  END IF;
+END;
+/</pre>
+</div></div></li><li>Load the data to collection... you can use REST APIs for a full NOSQL style loading. In the below example I am loading using PLSQL API<div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">
+DECLARE
+  l_collection  SODA_COLLECTION_T;
+  l_document    SODA_DOCUMENT_T;
+  l_status      NUMBER;
+BEGIN
+    delete &quot;TestCollection1&quot;;
+    l_collection := DBMS_SODA.open_collection(&#39;TestCollection1&#39;);
+    for i in (select * from json_dump_file_contents)
+    loop
+        l_document := SODA_DOCUMENT_T(
+                    b_content =&gt; i.json_document
+                    );
+        l_status := l_collection.insert_one(l_document);
+    end loop;
+    DBMS_OUTPUT.put_line(&#39;status    : &#39; || l_status);
+  COMMIT;
+END;
+/
+
+</pre>
+</div></div></li><li>Now the data will be available in JSON collection for query using SODA APIs<ul><li>** to be added later ***</li></ul></li></ul></li><li>Cleanup<ul><li><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">DECLARE
+  l_status  NUMBER := 0;
+BEGIN
+  l_status := DBMS_SODA.drop_collection(&#39;TestCollection1&#39;);
+END;
+/
+
+drop view vw_json_dump_file_contents;
+drop view json_documents_v1;
+drop table t_json_dump_file_contents;
+drop table json_dump_file_contents;
+
+</pre>
+</div></div></li></ul></li></ul>
+                    </div>
+
+                                                            <div class="pageSection group">
+                        <div class="pageSectionHeader">
+                            <h2 id="attachments" class="pageSectionTitle">Attachments:</h2>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/4605333251/4615742772.png">image2022-8-16_23-35-22.png</a> (image/png)
+                                <br/>
+                                                    </div>
+                    </div>
+                    
+                                                      
+                </div>             </div> 
+            <div id="footer" role="contentinfo">
+                <section class="footer-body">
+                    <p>Document generated by Confluence on Jan 26, 2023 11:18</p>
+                    <div id="footer-logo"><a href="http://www.atlassian.com/">Atlassian</a></div>
+                </section>
+            </div>
+        </div>     </body>
+</html>
